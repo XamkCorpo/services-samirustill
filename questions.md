@@ -1,5 +1,8 @@
 # Vaihe 3: Service-kerros, Repository, Result Pattern ja API-dokumentaatio — Teoriakysymykset
 
+Olin väsynyt kun vastasin kysymyksiin ja kun etsin netistä tietoa niin ei ollut oikein motivaatiota tarkistaa kuinka tosi jotkut asiat olivat.
+
+
 Vastaa alla oleviin kysymyksiin omin sanoin. Kirjoita vastauksesi kysymysten alle.
 
 > **Vinkki:** Jos jokin kysymys tuntuu vaikealta, palaa lukemaan teoriamateriaalit:
@@ -16,7 +19,7 @@ Vastaa alla oleviin kysymyksiin omin sanoin. Kirjoita vastauksesi kysymysten all
 Miksi on ongelma jos controller sisältää kaiken logiikan (tietokantakyselyt, muunnokset, validoinnin)? Anna vähintään kaksi konkreettista haittaa.
 
 **Vastaus:**
-
+Koodi toistuu usein, controlleristä tulee vaikeampi lukee koska sinne saattaa pääytä satoja riviä koodia, testaaminen vaikeutuu koska logiikka sitoutuu HTTP kerrokseen.
 
 ---
 
@@ -25,10 +28,13 @@ Miksi on ongelma jos controller sisältää kaiken logiikan (tietokantakyselyt, 
 Miten vastuut jakautuvat controller:n, service:n ja repository:n välillä tässä harjoituksessa? Kirjoita lyhyt kuvaus kunkin kerroksen tehtävästä.
 
 **Controller vastaa:**
+Mitä HTTP-pyynnöllä haluttiin
 
 **Service vastaa:**
+Mitä sovellus tekee
 
 **Repository vastaa:**
+Miten data haetaan
 
 
 ---
@@ -38,7 +44,8 @@ Miten vastuut jakautuvat controller:n, service:n ja repository:n välillä täss
 Miksi DTO ↔ Entity -muunnokset kuuluvat serviceen eikä controlleriin? Mitä hyötyä siitä on, että controller ei tunne `Product`-entiteettiä lainkaan?
 
 **Vastaus:**
-
+Jos muistan niin tunnilla selitettiin että käytetään serviceä käsittelemään dataa että controlleri ei "tiedä liikaa".
+Hyöty on että controlleri ei ole sidottuna entiteettiin jos vaikka tietokanta, relaatio tai validointi muuttuu. 
 
 ---
 
@@ -49,7 +56,7 @@ Miksi DTO ↔ Entity -muunnokset kuuluvat serviceen eikä controlleriin? Mitä h
 Miksi controller injektoi `IProductService`-interfacen eikä suoraan `ProductService`-luokkaa? Mitä hyötyä tästä on?
 
 **Vastaus:**
-
+Että ei olisi sidottuna konkreettiseen luokkaan. Pystyt määrittämään instanssin elinkaaren. 
 
 ---
 
@@ -57,12 +64,17 @@ Miksi controller injektoi `IProductService`-interfacen eikä suoraan `ProductSer
 
 Selitä ero näiden kolmen elinkaaren välillä ja anna esimerkki milloin kutakin käytetään:
 
-- **AddScoped:**
+- **AddScoped
+- Kestää yhden HTTP-pynnön
+  
 - **AddSingleton:**
+- Kestää sovelluksen koko elinkaaren
+  
 - **AddTransient:**
+- Luodaan uusi joka kerta
 
 Miksi `AddScoped` on oikea valinta `ProductService`:lle?
-
+Luulen, että se on resurrsien säästämistä varten koska scoped kestää yhden HTTP pyynnön.
 
 ---
 
@@ -71,7 +83,8 @@ Miksi `AddScoped` on oikea valinta `ProductService`:lle?
 Selitä omin sanoin mitä DI-kontti tekee kun HTTP-pyyntö saapuu ja `ProductsController` tarvitsee `IProductService`:ä. Mitä tapahtuu vaihe vaiheelta?
 
 **Vastaus:**
-
+DI kontti tarkistaa riippuvuudet konstruktorista, etsii rekisteröinnin esim IProductService -> ProductService ja rakentaa riippuvuuspuun. 
+DI-kontti katsoo konstruktorit -> instansoi olioita -> hallitsee elinkaaren
 
 ---
 
@@ -80,8 +93,12 @@ Selitä omin sanoin mitä DI-kontti tekee kun HTTP-pyyntö saapuu ja `ProductsCo
 Mitä tapahtuu jos unohdat rekisteröidä `IProductService`:n `Program.cs`:ssä? Milloin virhe ilmenee ja miltä se näyttää?
 
 **Vastaus:**
+ASP.NET core ei osaisi automaattisesti:
+Luoda AppDbContext-instanssin per pyyntö
+Injektoida sen ProductService-konstruktoriin
+Injektoida ProductService:n ProductsController-konstruktoriin.
 
-
+Virhe mielestäni ilmeneisi kun serviceä kutsuttaisiin, mutta en tiedä miltä se näyttäisi mutta varmaan jonkunlainen error numero.
 ---
 
 ## Osa 3: Repository-kerros
@@ -91,7 +108,7 @@ Mitä tapahtuu jos unohdat rekisteröidä `IProductService`:n `Program.cs`:ssä?
 `ProductService` käytti aluksi `AppDbContext`:ia suoraan. Miksi se refaktoroitiin käyttämään `IProductRepository`:a? Anna vähintään kaksi syytä.
 
 **Vastaus:**
-
+Jotta tehtäisiin siitä abstraktisempi interfacen taakse mikä tekee koodista testattavaa, ei riipu suoraan ef coresta eikä koodi toistu.
 
 ---
 
@@ -100,9 +117,10 @@ Mitä tapahtuu jos unohdat rekisteröidä `IProductService`:n `Program.cs`:ssä?
 Mikä on `IProductService`:n ja `IProductRepository`:n välinen ero? Mitä tietotyyppejä kumpikin käsittelee (DTO vai Entity)?
 
 **IProductService:**
+Toimii controllerin kanssa, hoitaa validoinnit, säännöt jne. Käsittelee molempia.
 
 **IProductRepository:**
-
+Toimii tietokannan kanssa, ei sisällä liiketoimintalogiikkaa ja vastaa datan tallennuksesta/hausta. Käsittelee entiteettejä.
 
 ---
 
